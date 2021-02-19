@@ -28,6 +28,10 @@ async function resetDatabase(stores) {
         stores.db('tags').del(),
         stores.db('tag_types').del(),
         stores.db('addons').del(),
+        stores.db('users').del(),
+        // stores.db('roles').del(),
+        // stores.db('role_user').del(),
+        // stores.db('role_permission').del(),
     ]);
 }
 
