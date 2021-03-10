@@ -5,7 +5,7 @@ const getLogger = require('../../fixtures/no-logger');
 // eslint-disable-next-line import/no-unresolved
 const {
     AccessService,
-    RoleType,
+    RoleName,
     ALL_PROJECTS,
 } = require('../../../lib/services/access-service');
 const permissions = require('../../../lib/permissions');
@@ -373,12 +373,12 @@ test.serial('should set root role for user', async t => {
         new User({ name: 'Some User', email: 'random2255@getunleash.io' }),
     );
 
-    await accessService.setUserRootRole(user.id, RoleType.REGULAR);
+    await accessService.setUserRootRole(user.id, RoleName.REGULAR);
 
     const roles = await accessService.getRolesForUser(user.id);
 
     t.is(roles.length, 1);
-    t.is(roles[0].name, RoleType.REGULAR);
+    t.is(roles[0].name, RoleName.REGULAR);
 });
 
 test.serial('should switch root role for user', async t => {
@@ -387,11 +387,11 @@ test.serial('should switch root role for user', async t => {
         new User({ name: 'Some User', email: 'random22Read@getunleash.io' }),
     );
 
-    await accessService.setUserRootRole(user.id, RoleType.REGULAR);
-    await accessService.setUserRootRole(user.id, RoleType.READ);
+    await accessService.setUserRootRole(user.id, RoleName.REGULAR);
+    await accessService.setUserRootRole(user.id, RoleName.READ);
 
     const roles = await accessService.getRolesForUser(user.id);
 
     t.is(roles.length, 1);
-    t.is(roles[0].name, RoleType.READ);
+    t.is(roles[0].name, RoleName.READ);
 });

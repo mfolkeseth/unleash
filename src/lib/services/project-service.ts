@@ -133,18 +133,11 @@ class ProjectService {
     }
 
     // RBAC methods
-    async getUsersWithAccess(projectId: string, user: User) {
-        let [roles, users] = await this.accessService.getProjectRoleUsers(
+    async getUsersWithAccess(projectId: string) {
+        const [roles, users] = await this.accessService.getProjectRoleUsers(
             projectId,
         );
-        if (roles.length === 0) {
-            // TODO: ONLY if RBAC is enabled.
-            this.logger.warn(`Creating missing roles for project ${projectId}`);
-            await this.accessService.createDefaultProjectRoles(user, projectId);
-            [roles, users] = await this.accessService.getProjectRoleUsers(
-                projectId,
-            );
-        }
+
         return {
             roles,
             users,

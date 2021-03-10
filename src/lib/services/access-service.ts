@@ -48,16 +48,20 @@ enum PermissionType {
     project='project',
 }
 
-export enum RoleType {
+export enum RoleName {
     ADMIN = 'Admin',
     REGULAR = 'Regular',
     READ = 'Read',
 }
 
+export enum RoleType {
+    ROOT = 'root',
+    PROJECT = 'project',
+}
 
 // TODO: Split this in two concerns. 1: Controlling access, 2: managing roles (rbac).
 export class AccessService {
-    public RoleType = RoleType;
+    public RoleName = RoleName;
     private store: AccessStore;
 
     private userStore: any;
@@ -103,18 +107,18 @@ export class AccessService {
         return this.store.addUserToRole(userId, roleId);
     }
 
-    async setUserRootRole(userId: number, roleType: RoleType ) {
+    async setUserRootRole(userId: number, roleName: RoleName ) {
         const userRoles = await this.store.getRolesForUserId(userId);
         const currentRootRoles = userRoles.filter(r => r.type === 'root');
 
         const roles = await this.getRoles();
-        const role = roles.find(r => r.type === 'root' && r.name === roleType);
+        const role = roles.find(r => r.type === 'root' && r.name === roleName);
         if(role) {
             try {
                 await Promise.all(currentRootRoles.map(r => this.store.removeUserFromRole(userId, r.id)));
                 await this.store.addUserToRole(userId, role.id);
             } catch (error) {
-                this.logger.warn('Could not add role=${roleType} to userId=${userId}');
+                this.logger.warn('Could not add role=${roleName} to userId=${userId}');
             }
         }
     }
@@ -180,8 +184,8 @@ export class AccessService {
         }
 
         const adminRole = await this.store.createRole(
-            RoleType.ADMIN,
-            'project-admin', //TODO: constant
+            RoleName.ADMIN,
+            RoleType.PROJECT,
             projectId,
             `Admin role for project "${projectId}"`,
         );
@@ -198,8 +202,8 @@ export class AccessService {
         };
         
         const regularRole = await this.store.createRole(
-            RoleType.REGULAR,
-            'project-regular',  //TODO: constant
+            RoleName.REGULAR,
+            RoleType.PROJECT,
             projectId,
             `Contributor role for project "${projectId}"`,
         );

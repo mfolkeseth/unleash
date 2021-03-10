@@ -78,7 +78,8 @@ export class AccessStore {
         return this.db
             .select(['id', 'name', 'type', 'project', 'description'])
             .from<Role>(T.ROLES)
-            .where('project', projectName);
+            .where('project', projectName)
+            .andWhere('type', 'project');
     }
 
     async removeRolesForProject(projectId: string): Promise<void> {
