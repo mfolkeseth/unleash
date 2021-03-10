@@ -1,6 +1,6 @@
 import User from '../user';
 import { AccessService } from './access-service';
-import { isFeatureEnabled, FEATURES } from '../util/feature-enabled';
+import { isRbacEnabled } from '../util/feature-enabled';
 
 const NameExistsError = require('../error/name-exists-error');
 const InvalidOperationError = require('../error/invalid-operation-error');
@@ -40,7 +40,7 @@ class ProjectService {
         this.eventStore = eventStore;
         this.featureToggleStore = featureToggleStore;
         this.logger = config.getLogger('services/project-service.js');
-        this.rbacEnabled = isFeatureEnabled(config, FEATURES.RBAC);
+        this.rbacEnabled = isRbacEnabled(config);
     }
 
     async getProjects() {

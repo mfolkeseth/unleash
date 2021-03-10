@@ -2,13 +2,13 @@
 
 const NoAccessError = require('../error/no-access-error');
 const { ADMIN } = require('../permissions');
-const { isFeatureEnabled, FEATURES } = require('../util/feature-enabled');
+const { isRbacEnabled } = require('../util/feature-enabled');
 
 module.exports = function(config, permission) {
     if (!permission) {
         return (req, res, next) => next();
     }
-    if (isFeatureEnabled(config, FEATURES.RBAC)) {
+    if (isRbacEnabled(config)) {
         return async (req, res, next) => {
             if (await req.checkRbac(permission)) {
                 return next();

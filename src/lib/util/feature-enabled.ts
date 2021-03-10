@@ -6,19 +6,8 @@ interface Config {
     experimental: ExperimentalFlags;
 }
 
-export enum FEATURES {
-    RBAC = 'rbac',
-}
-
-export const isFeatureEnabled = (
-    config: Config,
-    experimentalFeature: string,
-): boolean => {
-    return (
-        config &&
-        config.experimental &&
-        config.experimental[experimentalFeature]
-    );
+export const isRbacEnabled = (config: Config): boolean => {
+    return config && config.experimental && config.experimental.rbac;
 };
 
-module.exports = { isFeatureEnabled, FEATURES };
+module.exports = { isRbacEnabled };

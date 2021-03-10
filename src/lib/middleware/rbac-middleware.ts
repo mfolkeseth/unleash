@@ -1,5 +1,4 @@
-import { isFeatureEnabled, FEATURES } from '../util/feature-enabled';
-
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
     CREATE_FEATURE,
     UPDATE_FEATURE,
@@ -7,9 +6,10 @@ import {
     ADMIN,
 } from '../permissions';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+import { isRbacEnabled } from '../util/feature-enabled';
+
 const rbacMiddleware = (config: any, { accessService }: any): any => {
-    if (!isFeatureEnabled(config, FEATURES.RBAC)) {
+    if (!isRbacEnabled(config)) {
         return (req, res, next) => next();
     }
 
@@ -28,12 +28,11 @@ const rbacMiddleware = (config: any, { accessService }: any): any => {
             }
 
             if (!user || !user.id) {
-                logger.error(
-                    'RBAC requires a user with a userId on the request.',
-                );
+                logger.error('RBAC requires users to have a unique id.');
                 return false;
             }
 
+            // For /api/admin/projects/:projectId we will find it as part of params
             let { projectId } = params;
 
             // Temporary workaround to figure our projectId for feature toggle updates.

@@ -3,7 +3,7 @@ import Joi from 'joi';
 
 export interface UserData {
     id?: number;
-    isAPI: boolean;
+    isAPI?: boolean;
     name?: string;
     username?: string;
     email?: string;
