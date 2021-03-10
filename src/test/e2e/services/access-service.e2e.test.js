@@ -286,6 +286,29 @@ test.serial('should grant user access to project', async t => {
     t.false(await accessService.hasPermission(sUser, DELETE_PROJECT, project));
 });
 
+test.serial('should not get access if not specifying project', async t => {
+    const { CREATE_FEATURE, UPDATE_FEATURE, DELETE_FEATURE } = permissions;
+    const project = 'another-project-2';
+    const user = regularUser;
+    const sUser = await createUserWithRegularAccess(
+        'Some Random',
+        'random22@getunleash.io',
+    );
+    await accessService.createDefaultProjectRoles(user, project);
+
+    const roles = await accessService.getRolesForProject(project);
+
+    const regularRole = roles.find(
+        r => r.name === 'Regular' && r.project === project,
+    );
+    await accessService.addUserToRole(sUser.id, regularRole.id);
+
+    // Should not be able to update feature toggles outside project
+    t.false(await accessService.hasPermission(sUser, CREATE_FEATURE));
+    t.false(await accessService.hasPermission(sUser, UPDATE_FEATURE));
+    t.false(await accessService.hasPermission(sUser, DELETE_FEATURE));
+});
+
 test.serial('should remove user from role', async t => {
     const { userStore } = stores;
     const user = await userStore.insert(

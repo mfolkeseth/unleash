@@ -88,8 +88,6 @@ export class AccessService {
      * @param projectId 
      */
     async hasPermission(user: User, permission: string, projectId?: string): Promise<boolean> {
-        //TODO: require that project specific permissions specify projectId!
-
         this.logger.info(`Checking permission=${permission}, userId=${user.id} projectId=${projectId}`)
 
         const permissions = await this.store.getPermissionsForUser(user.id);
