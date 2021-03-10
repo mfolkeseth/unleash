@@ -5,6 +5,7 @@ const getLogger = require('../../fixtures/no-logger');
 // eslint-disable-next-line import/no-unresolved
 const {
     AccessService,
+    RoleType,
     ALL_PROJECTS,
 } = require('../../../lib/services/access-service');
 const permissions = require('../../../lib/permissions');
@@ -92,16 +93,6 @@ test.serial('should have access to update applications', async t => {
     t.true(await accessService.hasPermission(user, UPDATE_APPLICATION));
 });
 
-test.serial(
-    'should not have access to delete/update projects without specifying project',
-    async t => {
-        const { DELETE_PROJECT, UPDATE_PROJECT } = permissions;
-        const user = regularUser;
-        t.false(await accessService.hasPermission(user, DELETE_PROJECT));
-        t.false(await accessService.hasPermission(user, UPDATE_PROJECT));
-    },
-);
-
 test.serial('should not have admin permission', async t => {
     const { ADMIN } = permissions;
     const user = regularUser;
@@ -143,6 +134,50 @@ test.serial('should grant regular CREATE_FEATURE on all projects', async t => {
         await accessService.hasPermission(user, CREATE_FEATURE, 'some-project'),
     );
 });
+
+test.serial('cannot add CREATE_FEATURE without defining project', async t => {
+    const roles = await accessService.getRoles();
+    const regularRole = roles.find(
+        r => r.name === 'Regular' && r.type === 'root',
+    );
+
+    await t.throwsAsync(
+        async () => {
+            await accessService.addPermissionToRole(
+                regularRole.id,
+                permissions.CREATE_FEATURE,
+            );
+        },
+        {
+            instanceOf: Error,
+            message: 'ProjectId cannot be empty for permission=CREATE_FEATURE',
+        },
+    );
+});
+
+test.serial(
+    'cannot remove CREATE_FEATURE without defining project',
+    async t => {
+        const roles = await accessService.getRoles();
+        const regularRole = roles.find(
+            r => r.name === 'Regular' && r.type === 'root',
+        );
+
+        await t.throwsAsync(
+            async () => {
+                await accessService.removePermissionFromRole(
+                    regularRole.id,
+                    permissions.CREATE_FEATURE,
+                );
+            },
+            {
+                instanceOf: Error,
+                message:
+                    'ProjectId cannot be empty for permission=CREATE_FEATURE',
+            },
+        );
+    },
+);
 
 test.serial('should remove CREATE_FEATURE on all projects', async t => {
     const { CREATE_FEATURE } = permissions;
@@ -205,6 +240,18 @@ test.serial('should create default roles to project', async t => {
     t.true(await accessService.hasPermission(user, UPDATE_FEATURE, project));
     t.true(await accessService.hasPermission(user, DELETE_FEATURE, project));
 });
+
+test.serial(
+    'should require name when create default roles to project',
+    async t => {
+        await t.throwsAsync(
+            async () => {
+                await accessService.createDefaultProjectRoles(regularUser);
+            },
+            { instanceOf: Error, message: 'ProjectId cannot be empty' },
+        );
+    },
+);
 
 test.serial('should grant user access to project', async t => {
     const {
@@ -269,7 +316,7 @@ test.serial('should return role with users', async t => {
     const regularRole = roles.find(r => r.name === 'Regular');
     await accessService.addUserToRole(user.id, regularRole.id);
 
-    const roleWithUsers = await accessService.getRoleUsers(regularRole.id);
+    const roleWithUsers = await accessService.getRole(regularRole.id);
 
     t.is(roleWithUsers.role.name, 'Regular');
     t.true(roleWithUsers.users.length > 2);
@@ -297,4 +344,54 @@ test.serial('should return role with permissions and users', async t => {
         ),
     );
     t.true(roleWithPermission.users.length > 2);
+});
+
+test.serial('should return list of permissions', async t => {
+    const p = await accessService.getPermissions();
+
+    const findPerm = perm => p.find(_ => _.name === perm);
+
+    const {
+        DELETE_FEATURE,
+        UPDATE_FEATURE,
+        CREATE_FEATURE,
+        UPDATE_PROJECT,
+        CREATE_PROJECT,
+    } = permissions;
+
+    t.true(p.length > 2);
+    t.is(findPerm(CREATE_PROJECT).type, 'root');
+    t.is(findPerm(UPDATE_PROJECT).type, 'project');
+    t.is(findPerm(CREATE_FEATURE).type, 'project');
+    t.is(findPerm(UPDATE_FEATURE).type, 'project');
+    t.is(findPerm(DELETE_FEATURE).type, 'project');
+});
+
+test.serial('should set root role for user', async t => {
+    const { userStore } = stores;
+    const user = await userStore.insert(
+        new User({ name: 'Some User', email: 'random2255@getunleash.io' }),
+    );
+
+    await accessService.setUserRootRole(user.id, RoleType.REGULAR);
+
+    const roles = await accessService.getRolesForUser(user.id);
+
+    t.is(roles.length, 1);
+    t.is(roles[0].name, RoleType.REGULAR);
+});
+
+test.serial('should switch root role for user', async t => {
+    const { userStore } = stores;
+    const user = await userStore.insert(
+        new User({ name: 'Some User', email: 'random22Read@getunleash.io' }),
+    );
+
+    await accessService.setUserRootRole(user.id, RoleType.REGULAR);
+    await accessService.setUserRootRole(user.id, RoleType.READ);
+
+    const roles = await accessService.getRolesForUser(user.id);
+
+    t.is(roles.length, 1);
+    t.is(roles[0].name, RoleType.READ);
 });

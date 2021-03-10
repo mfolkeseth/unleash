@@ -23,12 +23,6 @@ interface Stores {
     userStore: any;
 }
 
-// Can replace this with a tuple?
-interface RoleUsers {
-    role: Role;
-    users: User[];
-}
-
 export interface UserWithRole {
     id: number;
     roleId: number;
@@ -131,14 +125,14 @@ export class AccessService {
 
     async addPermissionToRole(roleId: number, permission: string, projectId?: string) {
         if(isProjectPermission(permission) && !projectId) {
-            throw new Error('You must define a project.')
+            throw new Error(`ProjectId cannot be empty for permission=${permission}`)
         } 
         return this.store.addPermissionsToRole(roleId, [permission], projectId);
     }
 
     async removePermissionFromRole(roleId: number, permission: string, projectId?: string) {
         if(isProjectPermission(permission) && !projectId) {
-            throw new Error('You must define a project.')
+            throw new Error(`ProjectId cannot be empty for permission=${permission}`)
         }
         return this.store.removePermissionFromRole(roleId, permission, projectId);
     }
@@ -162,13 +156,6 @@ export class AccessService {
 
     async getRolesForUser(userId: number): Promise<Role[]> {
         return this.store.getRolesForUserId(userId);
-    }
-
-    async getRoleUsers(roleId) : Promise<RoleUsers> {
-        const [role, users] = await Promise.all([
-            this.store.getRoleWithId(roleId), 
-            this.getUsersForRole(roleId)]);
-        return {role, users}
     }
 
     async getUsersForRole(roleId) : Promise<User[]> {

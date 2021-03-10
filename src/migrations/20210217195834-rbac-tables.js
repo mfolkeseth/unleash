@@ -26,7 +26,7 @@ exports.up = function(db, cb) {
     
       WITH admin AS (
         INSERT INTO roles(name, description, type)
-        VALUES ('Admin', 'Admin the Unleash Instance', 'root')
+        VALUES ('Admin', 'Can read and write all resources in Unleash. This includes add and remove users and roles.', 'root')
         RETURNING id role_id
       )
 
@@ -35,7 +35,7 @@ exports.up = function(db, cb) {
 
       WITH regular AS (
         INSERT INTO roles(name, description, type)
-        VALUES ('Regular', 'Regular contributor. Can modify all root resources.', 'root')
+        VALUES ('Regular', 'Can read and write all root resources in Unleash, except users and roles. Users with this role can also create new projects.', 'root')
         RETURNING id role_id
       )
       INSERT INTO role_permission(role_id, project, permission)
@@ -63,7 +63,7 @@ exports.up = function(db, cb) {
         ((SELECT role_id from regular), 'default', 'DELETE_FEATURE');
       
       INSERT INTO roles(name, description, type)
-      VALUES ('Read', 'A Read only user.', 'root');
+      VALUES ('Read', 'Users with this role can only read root resources in Unleash. They may be added as collaborator to specific projects.', 'root');
       `,
         cb,
     );
